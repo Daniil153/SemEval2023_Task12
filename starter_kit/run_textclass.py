@@ -53,6 +53,7 @@ require_version("datasets>=1.8.0", "To fix: pip install -r examples/pytorch/text
 
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class DataTrainingArguments:
     """
@@ -167,13 +168,19 @@ def main():
     # See all possible arguments in src/transformers/training_args.py
     # or by passing the --help flag to this script.
     # We now keep distinct sets of args, for a cleaner separation of concerns.
-
+    import wandb
+    wandb.login(key="fdcb6a997c5bc972225cd91d208c18847364bb52")
     parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TrainingArguments))
     model_args, data_args, training_args = parser.parse_args_into_dataclasses()
 
+    training_args.report_to = ['wandb']
+    training_args.evaluation_strategy = 'epoch'
+    training_args.save_strategy = 'epoch'
+    training_args.load_best_model_at_end = True
+    # training_args.fp16 = True
     # Sending telemetry. Tracking the example usage helps us better allocate resources to maintain them. The
     # information sent is the one passed as arguments along with your Python/PyTorch versions.
-    #send_example_telemetry("run_xnli", model_args)
+    # send_example_telemetry("run_xnli", model_args)
 
     # Setup logging
     logging.basicConfig(
@@ -218,35 +225,33 @@ def main():
     # download the dataset.
     # Downloading and loading xnli dataset from the hub.
 
-
     if training_args.do_train:
-
-        #train_dataset = load_dataset('csv', data_files={'train': model_args.data_dir + '/train.csv'}, cache_dir=model_args.cache_dir)
-        #df = train_dataset["train"].to_pandas()
-        #label_list = df['label'].unique().tolist()
-        #label_list = train_dataset.features["label"].names
+        # train_dataset = load_dataset('csv', data_files={'train': model_args.data_dir + '/train.csv'}, cache_dir=model_args.cache_dir)
+        # df = train_dataset["train"].to_pandas()
+        # label_list = df['label'].unique().tolist()
+        # label_list = train_dataset.features["label"].names
         df = pd.read_csv(model_args.data_dir + '/train.tsv', sep='\t')
         df = df.dropna()
         train_dataset = Dataset.from_pandas(df)
         label_list = df['label'].unique().tolist()
 
     if training_args.do_eval:
-        #eval_dataset = load_dataset('csv', data_files={'validation': model_args.data_dir + '/dev.csv'}, cache_dir=model_args.cache_dir)
+        # eval_dataset = load_dataset('csv', data_files={'validation': model_args.data_dir + '/dev.csv'}, cache_dir=model_args.cache_dir)
 
-        #df = eval_dataset["validation"].to_pandas()
-        #label_list = df['label'].unique().tolist()
-        #label_list = eval_dataset.features["label"].names
+        # df = eval_dataset["validation"].to_pandas()
+        # label_list = df['label'].unique().tolist()
+        # label_list = eval_dataset.features["label"].names
         df = pd.read_csv(model_args.data_dir + '/dev.tsv', sep='\t')
         df = df.dropna()
         eval_dataset = Dataset.from_pandas(df)
         label_list = df['label'].unique().tolist()
 
     if training_args.do_predict:
-        #predict_dataset = load_dataset('csv', data_files={'test': model_args.data_dir + '/test.csv'}, cache_dir=model_args.cache_dir)
+        # predict_dataset = load_dataset('csv', data_files={'test': model_args.data_dir + '/test.csv'}, cache_dir=model_args.cache_dir)
 
-        #df = predict_dataset["test"].to_pandas()
-        #label_list = df['label'].unique().tolist()
-        #label_list = predict_dataset.features["label"].names
+        # df = predict_dataset["test"].to_pandas()
+        # label_list = df['label'].unique().tolist()
+        # label_list = predict_dataset.features["label"].names
         df = pd.read_csv(model_args.data_dir + '/test.tsv', sep='\t')
         df = df.dropna()
         predict_dataset = Dataset.from_pandas(df)
@@ -284,6 +289,8 @@ def main():
         use_auth_token=True if model_args.use_auth_token else None,
         ignore_mismatched_sizes=model_args.ignore_mismatched_sizes,
     )
+    wandb.init(
+        name=f'model-{model_args.model_name_or_path}__bs-{training_args.per_device_train_batch_size}__lr-{training_args.learning_rate}')
 
     # Preprocessing the datasets
     # Padding strategy
@@ -315,11 +322,11 @@ def main():
 
     def preprocess_function(examples):
         # Tokenize the texts
-        #print
-        texts =(examples['text'],)
-        result =  tokenizer(*texts, padding=padding, max_length=data_args.max_seq_length, truncation=True)
-        #print(examples['text'])
-        #result = tokenizer(examples['text'], examples['text'], padding=padding, max_length=data_args.max_seq_length, truncation=True)
+        # print
+        texts = (examples['text'],)
+        result = tokenizer(*texts, padding=padding, max_length=data_args.max_seq_length, truncation=True)
+        # print(examples['text'])
+        # result = tokenizer(examples['text'], examples['text'], padding=padding, max_length=data_args.max_seq_length, truncation=True)
         # Map labels to IDs (not necessary for GLUE tasks)
         if label_to_id is not None and "label" in examples:
             result["label"] = [(label_to_id[l] if l != -1 else -1) for l in examples["label"]]
@@ -389,6 +396,7 @@ def main():
         train_dataset=train_dataset if training_args.do_train else None,
         eval_dataset=eval_dataset if training_args.do_eval else None,
         compute_metrics=compute_metrics,
+        # report_to='wandb',
         tokenizer=tokenizer,
         data_collator=data_collator,
     )
@@ -449,7 +457,6 @@ def main():
 
 if __name__ == "__main__":
     main()
-
 
 '''
 CUDA_VISIBLE_DEVICES=3 python run_textclass.py \
