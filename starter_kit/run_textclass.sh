@@ -1,4 +1,6 @@
-CUDA_VISIBLE_DEVICES=0 python run_textclass.py \
+LANG=$1
+SUBTASK=$2
+CUDA_VISIBLE_DEVICES=0 python starter_kit/run_textclass.py \
   --model_name_or_path Davlan/afro-xlmr-mini \
   --do_train \
   --do_eval \
@@ -7,6 +9,6 @@ CUDA_VISIBLE_DEVICES=0 python run_textclass.py \
   --learning_rate 5e-5 \
   --num_train_epochs 1.0 \
   --max_seq_length 128 \
-  --data_dir data/yor \
-  --output_dir yor_sentiment \
+  --data_dir SUBTASK/train/formatted-train-data/$LANG \
+  --output_dir models/$LANG \
   --save_steps -1

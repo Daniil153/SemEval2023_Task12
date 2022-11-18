@@ -290,7 +290,8 @@ def main():
         ignore_mismatched_sizes=model_args.ignore_mismatched_sizes,
     )
     wandb.init(
-        name=f'model-{model_args.model_name_or_path}__bs-{training_args.per_device_train_batch_size}__lr-{training_args.learning_rate}')
+        name=f'model-{model_args.model_name_or_path}__bs-{training_args.per_device_train_batch_size}__'
+             f'lr-{training_args.learning_rate}__msl-{training_args.max_seq_length}')
 
     # Preprocessing the datasets
     # Padding strategy

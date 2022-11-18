@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="8ea82bd0-4e1f-4be2-b235-96bf37314171" name="cmc">
+        <fileTransfer accessType="SFTP" host="iip" port="9002" sshConfigId="01279b1f-3508-494d-8610-53f1f546d91a" sshConfig="root@iip:9002 agent" authAgent="true">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
